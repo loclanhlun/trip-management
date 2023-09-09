@@ -1,0 +1,1 @@
+<template>Tours Management</template>
