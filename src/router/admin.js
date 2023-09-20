@@ -1,7 +1,12 @@
 const admin = [
   {
     path: '/',
+    name: 'admin',
     component: () => import('../layouts/admin/AdminLayout.vue'),
+
+    redirect: (to) => {
+      return { path: '/tours' }
+    },
     children: [
       {
         path: '/tours',

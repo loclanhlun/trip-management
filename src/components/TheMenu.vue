@@ -16,16 +16,14 @@
 </template>
 
 <script>
-import { defineComponent, reactive, toRefs } from 'vue'
+import { defineComponent } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useMenu } from '../stores/use-menu'
 export default defineComponent({
   setup() {
-    const state = reactive({
-      selectedKeys: ['admin-tours'],
-      openKeys: ['1']
-    })
-
+    const store = useMenu()
     return {
-      ...toRefs(state)
+      ...storeToRefs(store)
     }
   }
 })

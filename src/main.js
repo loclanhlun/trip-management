@@ -2,13 +2,11 @@ import './assets/main.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-
 import App from './App.vue'
 import router from './router/index'
 import { Button, message, Drawer, List, Menu } from 'ant-design-vue'
-
+import './setupAxios'
 const app = createApp(App)
-
 app.use(createPinia())
 app.use(router)
 app.use(Button)
