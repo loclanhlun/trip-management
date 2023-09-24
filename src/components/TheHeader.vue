@@ -7,13 +7,37 @@
       <div class="col-10 col-sm-3 d-flex align-items-center justify-content-center d-lg-none d-md-none d-sm-none">
         <div class="logo"></div>
       </div>
-      <div class="col-sm-12 d-none d-sm-flex align-items-center justify-content-sm-end">
+      <div class="col-sm-12 d-none d-sm-flex align-items-end justify-content-sm-end">
         <div class="d-flex justify-content-end align-items-center" style="width: 70px">
-          <i class="bi bi-person-fill" style="font-size: 32px"></i>
+          <a-dropdown>
+            <span style="cursor: pointer"><i class="bi bi-person-fill icon" style="font-size: 32px"></i></span>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item>
+                  <a @click="showModel">Profile</a>
+                </a-menu-item>
+                <a-menu-item>
+                  <a @click="logout">Logout</a>
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
         </div>
       </div>
       <div class="col-1 d-flex d-sm-none align-items-center justify-content-end">
-        <i class="bi bi-person-fill" style="font-size: 32px"></i>
+        <a-dropdown>
+          <span style="cursor: pointer"><i class="bi bi-person-fill icon" style="font-size: 32px"></i></span>
+          <template #overlay>
+            <a-menu>
+              <a-menu-item>
+                <a @click="showModel">Profile</a>
+              </a-menu-item>
+              <a-menu-item>
+                <a @click="logout">Logout</a>
+              </a-menu-item>
+            </a-menu>
+          </template>
+        </a-dropdown>
       </div>
     </div>
     <a-drawer :open="visible" @close="closeDrawer()" title="Danh Mục" placement="left">
@@ -29,16 +53,50 @@
         </a-menu-item>
       </a-menu>
     </a-drawer>
+    <a-modal title="User Profile" :open="visibleModel" :footer="null" @cancel="handleCancel">
+      <a-form :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol">
+        <a-form-item label="Username">
+          <a-input disabled v-model:value="userInfoState.data.username" />
+        </a-form-item>
+        <a-form-item label="Email">
+          <a-input disabled v-model:value="userInfoState.data.email" />
+        </a-form-item>
+        <a-form-item label="Phone Number">
+          <a-input disabled v-model:value="userInfoState.data.phoneNumber" />
+        </a-form-item>
+        <a-form-item label="Full Name">
+          <a-input disabled v-model:value="userInfoState.data.fullName" />
+        </a-form-item>
+        <div class="d-flex justify-content-end">
+          <button @click="handleCancel" class="btn btn-secondary mx-2">Close</button>
+        </div>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 <script>
 import { defineComponent, ref } from 'vue'
 import { useMenu } from '../stores/use-menu'
+import { useAuthStore } from '../layouts/auth/store'
+import { useUsersStore } from '../pages/admin/users/stores/store'
 import { storeToRefs } from 'pinia'
+import { useRouter } from 'vue-router'
 export default defineComponent({
   setup() {
     const store = useMenu()
+    const router = useRouter()
+    const authStore = useAuthStore()
+    const userStore = useUsersStore()
     const visible = ref(false)
+    const visibleModel = ref(false)
+    const showModel = () => {
+      visibleModel.value = true
+    }
+
+    const handleCancel = () => {
+      visibleModel.value = false
+    }
+
     const showDrawer = () => {
       visible.value = true
     }
@@ -46,11 +104,35 @@ export default defineComponent({
     const closeDrawer = () => {
       visible.value = false
     }
+
+    const logout = () => {
+      authStore.logout()
+      router.push('/login')
+    }
+
+    const getUserInfo = async () => {
+      await userStore.getUserInfo(authStore.authState.data.id)
+    }
+
+    getUserInfo()
+
     return {
+      labelCol: {
+        span: 7
+      },
+      wrapperCol: {
+        span: 14
+      },
       visible,
+      visibleModel,
       showDrawer,
       closeDrawer,
-      ...storeToRefs(store)
+      logout,
+      handleCancel,
+      showModel,
+      ...storeToRefs(store),
+      ...storeToRefs(authStore),
+      ...storeToRefs(userStore)
     }
   }
 })
@@ -62,5 +144,10 @@ export default defineComponent({
   background-repeat: no-repeat;
   width: 56px;
   height: 64px;
+  cursor: pointer;
+}
+
+.icon:hover {
+  opacity: 0.5;
 }
 </style>

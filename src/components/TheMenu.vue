@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex flex-column w-100">
-    <div class="w-100" style="height: 65px; border-bottom: 1px solid #ccc"><div class="logo" /></div>
+    <div class="w-100" style="height: 65px; border-bottom: 1px solid #ccc"><div @click="navigateIndex" class="logo" /></div>
     <a-menu v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys" mode="inline">
       <a-menu-item key="admin-tours">
         <router-link class="text-decoration-none" :to="{ name: 'admin-tours' }"><span>Tours</span></router-link>
@@ -19,11 +19,17 @@
 import { defineComponent } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMenu } from '../stores/use-menu'
+import { useRouter } from 'vue-router'
 export default defineComponent({
   setup() {
+    const router = useRouter()
     const store = useMenu()
+    const navigateIndex = () => {
+      router.push('/')
+    }
     return {
-      ...storeToRefs(store)
+      ...storeToRefs(store),
+      navigateIndex
     }
   }
 })
@@ -36,5 +42,6 @@ export default defineComponent({
   width: 100%;
   height: 64px;
   margin-left: 30px;
+  cursor: pointer;
 }
 </style>

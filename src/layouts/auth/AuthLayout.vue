@@ -36,6 +36,7 @@ import { reactive, defineComponent, ref, computed, watchEffect } from 'vue'
 import { useAuthStore } from './store'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
+
 export default defineComponent({
   setup() {
     const formState = reactive({
@@ -48,14 +49,20 @@ export default defineComponent({
     const store = useAuthStore()
     const { signin } = store
     const { authState } = storeToRefs(store)
-    const onFinish = (values) => {
-      signin(values)
-
-      router.push('/')
+    const onFinish = async (values) => {
+      await signin(values)
     }
     const onFinishFailed = (errorInfo) => {
       console.log('Failed:', errorInfo)
     }
+
+    watchEffect(() => {
+      if (!store.authState.isLoading && store.authState.data && store.authState.data.roles[0] === 'ROLE_ADMIN') {
+        router.push('/admin')
+      } else if (!store.authState.isLoading && store.authState.data && store.authState.data.roles[0] === 'ROLE_USER') {
+        router.push('/trip/tours')
+      }
+    })
 
     return {
       onFinish,

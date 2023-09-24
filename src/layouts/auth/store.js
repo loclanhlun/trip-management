@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia'
 import { signin, signup } from './_request'
+
 export const useAuthStore = defineStore('auth', {
   state: () => {
     return {
       authState: {
         isLoading: false,
-        data: {},
+        data: JSON.parse(window.localStorage.getItem('userData')),
         error: null
       },
       signupState: {
@@ -31,7 +32,7 @@ export const useAuthStore = defineStore('auth', {
             error: 'Invalid Username or Password'
           }
         } else {
-          window.localStorage.setItem('accessToken', response.data.accessToken)
+          window.localStorage.setItem('userData', JSON.stringify(response.data))
           this.authState = {
             isLoading: false,
             data: response.data,
@@ -71,6 +72,9 @@ export const useAuthStore = defineStore('auth', {
           message: 'ERROR'
         }
       }
+    },
+    logout() {
+      window.localStorage.removeItem('userData')
     }
   }
 })

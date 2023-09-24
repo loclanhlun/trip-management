@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { deleteUserById, getUsers, updateUserByID, addUser } from '../_requests'
+import { deleteUserById, getUsers, updateUserByID, addUser, getUserInfoById } from '../_requests'
 export const useUsersStore = defineStore('users-store', {
   state: () => ({
     usersState: { isLoading: false, data: {}, error: null },
@@ -87,6 +87,27 @@ export const useUsersStore = defineStore('users-store', {
         this.addUserState = {
           isLoading: false,
           data: false
+        }
+      }
+    },
+    async getUserInfo(id) {
+      this.userInfoState = {
+        ...this.userInfoState,
+        isLoading: true
+      }
+      try {
+        const response = await getUserInfoById(id)
+        this.userInfoState = {
+          isLoading: false,
+          data: response.data,
+          error: null
+        }
+      } catch (error) {
+        console.log(error)
+        this.userInfoState = {
+          isLoading: false,
+          data: {},
+          error: error.message
         }
       }
     }

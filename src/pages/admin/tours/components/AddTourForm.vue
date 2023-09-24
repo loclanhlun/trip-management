@@ -5,25 +5,25 @@
         <a-input v-model:value="formState.name" />
       </a-form-item>
       <a-form-item label="Country">
-        <a-input v-model:value="formState.country" />
+        <a-input required v-model:value="formState.country" />
       </a-form-item>
       <a-form-item label="Duration">
-        <a-input v-model:value="formState.duration" />
+        <a-input required v-model:value="formState.duration" />
       </a-form-item>
       <a-form-item label="Type">
-        <a-input v-model:value="formState.type" />
+        <a-input required v-model:value="formState.type" />
       </a-form-item>
       <a-form-item label="Scale">
-        <a-input v-model:value="formState.scale" />
+        <a-input required v-model:value="formState.scale" />
       </a-form-item>
       <a-form-item label="Place">
-        <a-input v-model:value="formState.place" />
+        <a-input required v-model:value="formState.place" />
       </a-form-item>
       <a-form-item label="Description">
-        <a-input v-model:value="formState.description" />
+        <a-input required v-model:value="formState.description" />
       </a-form-item>
       <a-form-item label="Price">
-        <a-input v-model:value="formState.price" />
+        <a-input required type="number" v-model:value="formState.price" />
       </a-form-item>
 
       <div class="d-flex justify-content-end">
