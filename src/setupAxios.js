@@ -1,9 +1,9 @@
 import apiClient from './axiosClient.js'
 apiClient.interceptors.request.use(
   (config) => {
-    const accessToken = window.localStorage.getItem('accessToken')
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`
+    const userData = JSON.parse(window.localStorage.getItem('userData'))
+    if (userData) {
+      config.headers.Authorization = `Bearer ${userData.accessToken}`
     }
 
     return config

@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
-import { getReviews, changeStatusReviewById, deleteReviewById } from '../_requests'
+import { getReviews, changeStatusReviewById, deleteReviewById, addReview } from '../_requests'
 export const useReviewStore = defineStore('reviews-store', {
   state: () => ({
     reviewsState: { isLoading: false, data: {}, error: null },
     changeStatusReviewState: { isLoading: false, data: {}, error: null },
-    deleteReviewState: { isLoading: false, data: {}, error: null }
+    deleteReviewState: { isLoading: false, data: {}, error: null },
+    addReviewState: { isLoading: false, data: {}, error: null }
   }),
   actions: {
     async getReviews(page, size) {
@@ -65,6 +66,27 @@ export const useReviewStore = defineStore('reviews-store', {
         console.log(error)
         this.deleteReviewState = {
           ...this.deleteReviewState,
+          isLoading: false,
+          error: 'error'
+        }
+      }
+    },
+    async addReview(payload) {
+      this.addReviewState = {
+        ...this.addReviewState,
+        isLoading: true
+      }
+      try {
+        const response = await addReview(payload)
+        this.addReviewState = {
+          ...this.addReviewState,
+          isLoading: false,
+          data: response.data
+        }
+      } catch (error) {
+        console.log(error)
+        this.addReviewState = {
+          ...this.addReviewState,
           isLoading: false,
           error: 'error'
         }

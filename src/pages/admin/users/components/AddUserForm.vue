@@ -1,30 +1,30 @@
 <template>
   <div class="w-100 mt-2">
-    <a-form :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol">
-      <a-form-item label="Username">
+    <a-form :model="formState" :label-col="labelCol" @finish="handleSubmit" :wrapper-col="wrapperCol">
+      <a-form-item label="Tên tài khoản" name="username" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
         <a-input v-model:value="formState.username" />
       </a-form-item>
-      <a-form-item label="Email">
+      <a-form-item label="Email" name="email" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
         <a-input v-model:value="formState.email" />
       </a-form-item>
-      <a-form-item label="Phone Number">
+      <a-form-item label="Số điện thoại" name="phoneNumber" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
         <a-input v-model:value="formState.phoneNumber" />
       </a-form-item>
-      <a-form-item label="Password">
-        <a-input v-model:value="formState.password" />
+      <a-form-item label="Mật khẩu" name="password" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
+        <a-input-password v-model:value="formState.password" />
       </a-form-item>
-      <a-form-item label="Full Name">
+      <a-form-item label="Họ và tên" name="fullName" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
         <a-input v-model:value="formState.fullName" />
       </a-form-item>
-      <a-form-item label="Roles">
+      <a-form-item label="Loại tài khoản" name="role" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
         <a-select ref="select" v-model:value="formState.role" style="width: 120px">
-          <a-select-option value="admin">Admin</a-select-option>
-          <a-select-option value="user">User</a-select-option>
+          <a-select-option value="admin">Quản trị viên</a-select-option>
+          <a-select-option value="user">Người dùng</a-select-option>
         </a-select>
       </a-form-item>
       <div class="d-flex justify-content-end">
-        <button @click="handleSubmit" class="btn btn-primary mx-2">Submit</button>
-        <button @click="handleClose" class="btn btn-secondary mx-2">Cancel</button>
+        <button html-type="submit" class="btn btn-primary mx-2">Lưu</button>
+        <button @click="handleClose" class="btn btn-secondary mx-2">Hủy</button>
       </div>
     </a-form>
   </div>

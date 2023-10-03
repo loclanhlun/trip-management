@@ -4,7 +4,7 @@ export const useUsersStore = defineStore('users-store', {
   state: () => ({
     usersState: { isLoading: false, data: {}, error: null },
     userInfoState: { isLoading: false, data: {}, error: null },
-    updateUserByIdState: { isLoading: false, data: false },
+    updateUserByIdState: { isLoading: false, data: null },
     deleteUserByIdState: { isLoading: false, data: false },
     addUserState: { isLoading: false, data: false }
   }),
@@ -46,7 +46,7 @@ export const useUsersStore = defineStore('users-store', {
         console.log(error)
         this.updateUserByIdState = {
           isLoading: false,
-          data: false
+          data: error.message
         }
       }
     },
@@ -86,7 +86,7 @@ export const useUsersStore = defineStore('users-store', {
         console.log(error)
         this.addUserState = {
           isLoading: false,
-          data: false
+          data: error.message
         }
       }
     },

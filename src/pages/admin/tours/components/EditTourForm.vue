@@ -1,41 +1,48 @@
 <template>
   <div class="w-100 mt-2">
-    <a-form :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" @finish="handleSubmit">
+    <div class="d-flex justify-content-center" v-if="getTourByIdState.isLoading">
+      <a-spin size="small" />
+    </div>
+    <a-form v-else :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" @finish="handleSubmit" @cancel="handleClose">
       <a-form-item label="Tên Tour" name="name" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
-        <a-input v-model:value="formState.name" />
+        <a-input :disabled="!isEdit" v-model:value="formState.name" />
       </a-form-item>
-      <a-form-item label="Chọn ảnh">
-        <input id="upload" class="" type="file" @change="onFileChanged" accept="image/jpg,png" capture />
+      <a-form-item v-if="isEdit" label="Chọn ảnh">
+        <input :disabled="!isEdit" id="upload" class="" type="file" @change="onFileChanged" accept="image/jpg,png" capture />
+      </a-form-item>
+      <a-form-item v-else label="Chọn ảnh">
+        <img :src="formState.img" style="width: 200px; height: auto; background-repeat: no-repeat; background-size: contain" />
       </a-form-item>
       <a-form-item label="Quốc Gia" name="country" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
-        <a-input v-model:value="formState.country" />
+        <a-input :disabled="!isEdit" v-model:value="formState.country" />
       </a-form-item>
       <a-form-item label="Tổng thời gian" name="duration" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
-        <a-input v-model:value="formState.duration" />
+        <a-input :disabled="!isEdit" v-model:value="formState.duration" />
       </a-form-item>
       <a-form-item label="Loại tour" name="type" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
-        <a-input v-model:value="formState.type" />
+        <a-input :disabled="!isEdit" v-model:value="formState.type" />
       </a-form-item>
       <a-form-item label="Số lượng người" name="scale" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
-        <a-input v-model:value="formState.scale" />
+        <a-input :disabled="!isEdit" v-model:value="formState.scale" />
       </a-form-item>
       <a-form-item label="Địa điểm" name="place" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
-        <a-input v-model:value="formState.place" />
+        <a-input :disabled="!isEdit" v-model:value="formState.place" />
       </a-form-item>
       <a-form-item label="Mô Tả" name="description" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
-        <a-input v-model:value="formState.description" />
+        <a-input :disabled="!isEdit" v-model:value="formState.description" />
       </a-form-item>
       <a-form-item label="Giá" name="price" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
-        <a-input type="number" v-model:value="formState.price" />
+        <a-input :disabled="!isEdit" type="number" v-model:value="formState.price" />
       </a-form-item>
 
       <div class="d-flex justify-content-end">
         <a-form-item>
-          <a-button :disabled="addTourState.isLoading" html-type="submit" class="btn btn-primary mx-2">
-            Thêm<a-spin size="small" v-if="addTourState.isLoading" />
+          <a-button v-if="isEdit" :disabled="updateTourByIdState.isLoading" html-type="submit" class="btn btn-primary mx-2">
+            Lưu<a-spin size="small" v-if="updateTourByIdState.isLoading" />
           </a-button>
+          <a-button v-else @click="onEdit" type="button" class="btn btn-primary mx-2"> Chỉnh sửa </a-button>
         </a-form-item>
-        <a-form-item>
+        <a-form-item v-if="isEdit">
           <a-button @click="handleClose" class="btn btn-secondary mx-2">Hủy</a-button>
         </a-form-item>
       </div>
@@ -44,12 +51,13 @@
 </template>
 
 <script>
-import { defineComponent, ref, reactive, toRaw, watchEffect } from 'vue'
+import { defineComponent, ref, reactive, toRaw, onMounted, watch } from 'vue'
 import { useToursStore } from '../stores/store'
 import { storeToRefs } from 'pinia'
 export default defineComponent({
-  props: [],
   setup(props, { emit }) {
+    const store = useToursStore()
+
     const getInitialValues = () => ({
       name: '',
       country: '',
@@ -65,8 +73,12 @@ export default defineComponent({
     const base64Image = ref(null)
     const file = ref(null)
     const formState = reactive(getInitialValues())
-    const store = useToursStore()
     const resetForm = () => Object.assign(formState, getInitialValues())
+    const isEdit = ref(false)
+
+    const onEdit = () => {
+      isEdit.value = true
+    }
 
     const getBase64 = (file) => {
       const reader = new FileReader()
@@ -89,20 +101,34 @@ export default defineComponent({
         ...toRaw(formState),
         img: base64Image.value
       }
-      emit('handleSubmit', payload)
+      emit('handleUpdate', payload)
     }
 
-    watchEffect(() => {
+    watch(store, () => {
       if (!store.addTourState.isLoading && store.addTourState.data) {
         resetForm()
         base64Image.value = null
       }
     })
 
+    watch(store, () => {
+      if (store.getTourByIdState.data) {
+        Object.assign(formState, { ...store.getTourByIdState.data })
+      }
+    })
+
     const handleClose = () => {
       emit('handleCancel')
-      resetForm()
     }
+
+    watch(store, () => {
+      if (!store.updateTourByIdState.isLoading && store.updateTourByIdState.data) {
+        if (store.updateTourByIdState.data.statusCode === 200) {
+          isEdit.value = false
+        }
+      }
+    })
+
     return {
       labelCol: {
         span: 7
@@ -110,11 +136,13 @@ export default defineComponent({
       wrapperCol: {
         span: 14
       },
-      ...storeToRefs(store),
       formState,
+      isEdit,
+      onEdit,
       handleSubmit,
       onFileChanged,
-      handleClose
+      handleClose,
+      ...storeToRefs(store)
     }
   }
 })

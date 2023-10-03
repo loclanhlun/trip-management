@@ -13,3 +13,7 @@ export const changeStatusReviewById = (id) => {
 export const deleteReviewById = (id) => {
   return apiClient.delete(`${GET_ADD_UPDATE_DELETE_REVIEWS_URL}/${id}`)
 }
+
+export const addReview = (payload) => {
+  return apiClient.post(GET_ADD_UPDATE_DELETE_REVIEWS_URL, payload)
+}

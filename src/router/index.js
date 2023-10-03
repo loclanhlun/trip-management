@@ -13,11 +13,16 @@ router.beforeEach((to, from, next) => {
   const data = window.localStorage.getItem('userData')
   const userData = JSON.parse(data)
   const adminRouterNames = ['admin', 'admin-users', 'admin-tours', 'admin-reviews']
-  const userRouterNames = ['user-tours']
+  const userRouterNames = ['user-layout', 'user-tours', 'user-reviews']
   if (!data) {
     if (to.name === 'Login') {
       next()
     }
+
+    if (to.name === 'Register') {
+      next()
+    }
+
     if (!to.name) {
       next({ name: 'user-tours' })
     }
@@ -29,7 +34,7 @@ router.beforeEach((to, from, next) => {
     }
   } else {
     if (userData.roles[0] === 'ROLE_ADMIN') {
-      if (to.name === 'Login' && data && userData.accessToken !== null) {
+      if ((to.name === 'Login' || to.name === 'Register') && data && userData.accessToken !== null) {
         next({ name: 'admin' })
       }
       if (userRouterNames.includes(to.name)) {
@@ -38,10 +43,10 @@ router.beforeEach((to, from, next) => {
         next()
       }
     } else {
-      if (to.name === 'Login' && data && userData.accessToken !== null) {
+      if ((to.name === 'Login' || to.name === 'Register') && data && userData.accessToken !== null) {
         next({ name: 'user-tours' })
       }
-      if (adminRouterNames.includes(to.name)) {
+      if (adminRouterNames.includes(to.name) || !to.name) {
         next({ name: 'user-tours' })
       } else {
         if (userRouterNames.includes(to.name)) {
@@ -50,24 +55,6 @@ router.beforeEach((to, from, next) => {
       }
     }
   }
-
-  // co token
-
-  // if (to.name !== 'Login' && to.name === 'user-layout' && !data) {
-  //   next({ name: 'user-tours' })
-  // } else if (to.name === 'Login' && data && userData.accessToken !== null) {
-  //   next({ name: from.name })
-  // } else if (to.name !== 'Login' && data && userData.accessToken !== null && userData.roles[0] === 'ROLE_USER') {
-  //   next({ name: 'user-tours' })
-  // } else if (to.name !== 'Login' && !data) {
-  //   next({ name: 'Login' })
-  // }
-
-  // if (to.name !== 'Login' && !data)
-  // if (to.name === 'Login' && data && userData.accessToken !== null) next({ name: from.name })
-  // if (to.name !== 'Login' && data && userData.accessToken !== null && userData.roles[0] === 'ROLE_USER') {
-  //   next({ name: 'user-tours' })
-  // } else next()
 })
 
 export default router

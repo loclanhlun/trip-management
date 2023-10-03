@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid">
+  <div class="container-fluid p-0" style="background-color: rgb(237, 238, 240)">
     <the-user-header />
     <router-view></router-view>
   </div>
@@ -16,3 +16,5 @@ export default defineComponent({
   }
 })
 </script>
+
+<style scoped></style>

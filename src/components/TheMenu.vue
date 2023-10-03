@@ -25,7 +25,7 @@ export default defineComponent({
     const router = useRouter()
     const store = useMenu()
     const navigateIndex = () => {
-      router.push('/')
+      router.push('/admin')
     }
     return {
       ...storeToRefs(store),

@@ -57,23 +57,27 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const response = await signup(payload)
-        const message = response.message
+        console.log(response)
         this.signupState = {
           ...this.signupState,
           isLoading: false,
-          message: message
+          message: response.data.message
         }
       } catch (error) {
         console.log(error)
-
         this.signupState = {
           ...this.signupState,
           isLoading: false,
-          message: 'ERROR'
+          message: 'Tên Người dùng hoặc Email đã tồn tại!'
         }
       }
     },
     logout() {
+      this.authState = {
+        data: null,
+        isLoading: false,
+        error: null
+      }
       window.localStorage.removeItem('userData')
     }
   }

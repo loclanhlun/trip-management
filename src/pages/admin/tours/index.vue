@@ -1,12 +1,15 @@
 <template>
-  <h3 class="text-center mt-5 mb-5">Tours Management</h3>
+  <h3 class="text-center mt-5 mb-5">Danh sách tour</h3>
   <div class="d-flex">
     <div class="w-100">
       <div class="d-flex justify-content-end mb-2">
-        <button @click="openModal" class="btn btn-primary">Add</button>
+        <button @click="openModal" class="btn btn-primary">Thêm</button>
       </div>
-      <a-modal title="Add Tour" :open="visible" :footer="null" @cancel="handleCancel">
+      <a-modal title="Thêm Tour" :open="visible" :footer="null" @cancel="handleCancel">
         <add-tour-form @handleCancel="handleCancel" @handleSubmit="handleSubmit" />
+      </a-modal>
+      <a-modal title="Chỉnh sửa Tour" :open="visibleEditModal" :footer="null" @cancel="handleCancel">
+        <edit-tour-form @handleCancel="handleCancel" :tourId="tourId" @handleUpdate="handleUpdate" />
       </a-modal>
       <a-table
         :columns="columns"
@@ -19,28 +22,27 @@
         <template #bodyCell="{ column, text, record }">
           <template v-if="column.key === 'action'">
             <div class="editable-row-operations">
-              <span v-if="editableData[record.id]">
-                <a-typography-link @click="save(record.id)">Save <a-spin size="small" v-if="updateTourByIdState.isLoading" /></a-typography-link>
-                <a-popconfirm title="Sure to cancel?" @confirm="cancel(record.id)">
-                  <a>Cancel</a>
-                </a-popconfirm>
-              </span>
-              <span v-else>
-                <a @click="edit(record.id)">Edit</a>
+              <span>
+                <a @click="edit(record.id)">Chỉnh sửa</a>
               </span>
               <span>
                 <a-popconfirm title="Sure to delete this row?" @confirm="onDelete(record.id)">
-                  <a>Delete <a-spin size="small" v-if="deleteTourByIdState.isLoading" /></a>
+                  <a>Xóa <a-spin size="small" v-if="deleteTourByIdState.isLoading" /></a>
                 </a-popconfirm>
               </span>
             </div>
           </template>
-          <template v-if="['name', 'country', 'duration', 'type', 'scale', 'place', 'description', 'price'].includes(column.dataIndex)">
+
+          <template v-if="['name', 'img', 'country', 'duration', 'type', 'scale', 'place', 'description', 'price'].includes(column.dataIndex)">
             <div>
-              <a-input v-if="editableData[record.id]" v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" />
-              <template v-else>
-                {{ text }}
-              </template>
+              <a-form>
+                <template v-if="column.key === 'img'">
+                  <img :src="record.img" style="width: 200px; height: auto; background-repeat: no-repeat; background-size: contain" />
+                </template>
+                <template v-else>
+                  {{ text }}
+                </template>
+              </a-form>
             </div>
           </template>
         </template>
@@ -54,81 +56,77 @@
 </template>
 
 <script>
-import { defineComponent, ref, reactive, toRaw, watch } from 'vue'
+import { defineComponent, ref, toRaw, watch } from 'vue'
 import AddTourForm from './components/AddTourForm.vue'
-import { cloneDeep } from 'lodash-es'
+import EditTourForm from './components/EditTourForm.vue'
 import { useMenu } from '../../../stores/use-menu'
 import { useToursStore } from './stores/store'
 import { storeToRefs } from 'pinia'
+import { message } from 'ant-design-vue'
+
 export default defineComponent({
   components: {
-    AddTourForm
+    AddTourForm,
+    EditTourForm
   },
   setup() {
     useMenu().onSelectedKeys(['admin-tours'])
     const columns = [
       {
-        title: 'Tours Name',
+        title: 'Tên Tour',
         dataIndex: 'name',
         key: 'name',
         width: 120
       },
       {
-        title: 'Country',
+        title: 'Hình ảnh',
+        dataIndex: 'img',
+        key: 'img',
+        width: 300
+      },
+      {
+        title: 'Quốc gia',
         dataIndex: 'country',
         key: 'country',
         width: 100
       },
       {
-        title: 'Duration',
+        title: 'Tổng thời gian',
         dataIndex: 'duration',
         key: 'duration',
         width: 100
       },
       {
-        title: 'Type',
+        title: 'Loại Tour',
         dataIndex: 'type',
         key: 'type',
         width: 100
       },
       {
-        title: 'Scale',
+        title: 'Số lượng người',
         dataIndex: 'scale',
         key: 'scale',
         width: 100
       },
       {
-        title: 'Place',
+        title: 'Địa điểm',
         dataIndex: 'place',
         key: 'place',
         width: 100
       },
       {
-        title: 'Description',
+        title: 'Mô tả',
         dataIndex: 'description',
         key: 'description',
         width: 150
       },
       {
-        title: 'Price',
+        title: 'Giá',
         dataIndex: 'price',
         key: 'price',
         width: 100
       },
       {
-        title: 'Rating',
-        dataIndex: 'rating',
-        key: 'rating',
-        width: 100
-      },
-      {
-        title: 'Count Rating',
-        dataIndex: 'countRating',
-        key: 'countRating',
-        width: 120
-      },
-      {
-        title: 'Action',
         key: 'action',
         width: 200,
         fixed: 'right'
@@ -137,13 +135,15 @@ export default defineComponent({
     const current = ref(1)
     const pageSize = ref(10)
     const store = useToursStore()
-
-    const editableData = reactive({})
+    const base64Image = ref(null)
+    const file = ref(null)
+    const tourId = ref(null)
 
     const visible = ref(false)
+    const visibleEditModal = ref(false)
 
     const callGetToursAPI = async () => {
-      await store.getTours(current.value - 1, pageSize.value)
+      await store.getTours(current.value - 1, pageSize.value, { searchKey: '' })
     }
 
     watch(pageSize, () => {
@@ -161,25 +161,39 @@ export default defineComponent({
 
     const handleSubmit = async (data) => {
       await store.addTour(toRaw(data))
+      if (store.addTourState.data.statusCode === 200) {
+        message.success('Thành công')
+      } else {
+        message.error('Thất bại')
+      }
       visible.value = false
       callGetToursAPI()
     }
     const handleCancel = () => {
       visible.value = false
+      visibleEditModal.value = false
     }
 
     const edit = (id) => {
-      editableData[id] = cloneDeep(store.toursState.data.content.filter((item) => id === item.id)[0])
+      visibleEditModal.value = true
+      store.getTourById(id)
+      tourId.value = id
     }
 
-    const save = async (id) => {
-      const payload = toRaw(editableData[id])
-      delete payload.rating
-      delete payload.countRating
-      delete payload.id
-      await store.updateTourById(id, payload)
-      callGetToursAPI()
-      delete editableData[id]
+    const getBase64 = (file) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        base64Image.value = reader.result
+      }
+      reader.readAsDataURL(file)
+    }
+
+    const onFileChanged = (event) => {
+      const target = event.target
+      if (target && target.files) {
+        file.value = target.files[0]
+        getBase64(file.value)
+      }
     }
 
     const onDelete = async (id) => {
@@ -187,24 +201,33 @@ export default defineComponent({
       callGetToursAPI()
     }
 
-    const cancel = (id) => {
-      delete editableData[id]
+    const handleUpdate = async (data) => {
+      await store.updateTourById(tourId.value, data)
+      if (store.updateTourByIdState.data.statusCode === 200) {
+        message.success('Thành công')
+        visibleEditModal.value = false
+        store.getTourById(tourId.value)
+      } else {
+        message.error('Thất bại')
+      }
+      callGetToursAPI()
     }
 
     return {
       columns,
       current,
       pageSize,
-      editableData,
       visible,
+      tourId,
+      visibleEditModal,
       ...storeToRefs(store),
       openModal,
       handleCancel,
       handleSubmit,
       edit,
-      save,
       onDelete,
-      cancel
+      onFileChanged,
+      handleUpdate
     }
   }
 })

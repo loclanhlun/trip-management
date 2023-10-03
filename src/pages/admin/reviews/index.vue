@@ -1,5 +1,5 @@
 <template>
-  <h3 class="text-center mt-5 mb-5">Reviews Management</h3>
+  <h3 class="text-center mt-5 mb-5">Danh sách bài đăng</h3>
   <div class="d-flex">
     <div class="w-100">
       <a-table
@@ -14,18 +14,23 @@
           <template v-if="column.key === 'action'">
             <div class="editable-row-operations">
               <span v-if="record.status === false">
-                <a-typography-link @click="save(record.id)">Approve<a-spin size="small" v-if="reviewsState.isLoading" /></a-typography-link>
+                <a-typography-link @click="save(record.id)">Duyệt<a-spin size="small" v-if="reviewsState.isLoading" /></a-typography-link>
               </span>
               <span v-if="record.status === false">
                 <a-popconfirm title="Sure to delete this row?" @confirm="onDelete(record.id)">
-                  <a>Reject <a-spin size="small" v-if="deleteReviewState.isLoading" /></a>
+                  <a>Từ chối <a-spin size="small" v-if="deleteReviewState.isLoading" /></a>
                 </a-popconfirm>
               </span>
             </div>
           </template>
-          <template v-if="column.key === 'status' && record.status === false"> Waiting for approve </template>
+          <template v-if="column.key === 'imgPreview'">
+            <img :src="record.imgPreview" style="width: 200px; height: auto; background-repeat: no-repeat; background-size: contain" />
+          </template>
+          <template v-if="column.key === 'status' && record.status === false">
+            <a-tag color="#54B4D3"> Đang chờ duyệt </a-tag>
+          </template>
 
-          <template v-if="column.key === 'status' && record.status === true"> Approved </template>
+          <template v-if="column.key === 'status' && record.status === true"> <a-tag color="green"> Đã duyệt </a-tag></template>
         </template>
       </a-table>
 
@@ -41,43 +46,37 @@ import { defineComponent, ref, watch } from 'vue'
 import { useMenu } from '../../../stores/use-menu'
 import { useReviewStore } from './store/store'
 import { storeToRefs } from 'pinia'
+import { message } from 'ant-design-vue'
 export default defineComponent({
   setup() {
     useMenu().onSelectedKeys(['admin-reviews'])
     const store = useReviewStore()
     const columns = [
       {
-        title: 'Title',
+        title: 'Tiêu Đề',
         dataIndex: 'title',
         key: 'title',
-        width: 70
+        width: 150
       },
       {
-        title: 'Image',
+        title: 'Hình ảnh',
         dataIndex: 'imgPreview',
         key: 'imgPreview',
-        width: 70
+        width: 250
       },
       {
-        title: 'Short Description',
-        dataIndex: 'shortDescription',
-        key: 'shortDescription',
+        title: 'Mô tả',
+        dataIndex: 'description',
+        key: 'description',
+        width: 200
+      },
+      {
+        title: 'Tình trạng',
+        dataIndex: 'status',
+        key: 'status',
         width: 120
       },
       {
-        title: 'Description',
-        dataIndex: 'description',
-        key: 'description',
-        width: 100
-      },
-      {
-        title: 'Status',
-        dataIndex: 'status',
-        key: 'status',
-        width: 70
-      },
-      {
-        title: 'Action',
         key: 'action',
         width: 200,
         fixed: 'right'
@@ -105,15 +104,17 @@ export default defineComponent({
       visible.value = true
     }
 
-    const handleSubmit = (data) => {
-      console.log(data.roles)
-    }
     const handleCancel = () => {
       visible.value = false
     }
 
     const save = async (id) => {
       await store.changeStatusReviewById(id)
+      if (store.changeStatusReviewState.data.statusCode === 200) {
+        message.success('Thành công')
+      } else {
+        message.error('Thất bại')
+      }
       callGetReviewsAPI()
     }
 
@@ -126,12 +127,10 @@ export default defineComponent({
       current,
       visible,
       pageSize,
-      current,
       ...storeToRefs(store),
       onDelete,
       openModal,
       handleCancel,
-      handleSubmit,
       save
     }
   }

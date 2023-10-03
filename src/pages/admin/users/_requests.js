@@ -12,7 +12,7 @@ export const getUserInfoById = (id) => {
 }
 
 export const updateUserByID = (id, payload) => {
-  return apiClient.post(`${UPDATE_DELETE_ADD_USER_BY_ID_URL}/${id}`, payload)
+  return apiClient.put(`${UPDATE_DELETE_ADD_USER_BY_ID_URL}/${id}`, payload)
 }
 
 export const deleteUserById = (id) => {
