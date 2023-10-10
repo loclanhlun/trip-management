@@ -22,6 +22,11 @@
           <a-select-option value="user">Người dùng</a-select-option>
         </a-select>
       </a-form-item>
+
+      <a-form-item label="Sở thích của bạn là gì?">
+        <a-spin class="mt-2 mx-2" size="small" v-if="favoritesState.isLoading" />
+        <a-checkbox-group v-else class="mt-2 mx-2" v-model="formState.favorite" :options="favoritesState.data" @change="onChange" />
+      </a-form-item>
       <div class="d-flex justify-content-end">
         <button html-type="submit" class="btn btn-primary mx-2">Lưu</button>
         <button @click="handleClose" class="btn btn-secondary mx-2">Hủy</button>
@@ -31,8 +36,10 @@
 </template>
 
 <script>
-import { defineComponent, reactive, watchEffect } from 'vue'
+import { defineComponent, reactive, watchEffect, onMounted } from 'vue'
 import { useUsersStore } from '../../users/stores/store'
+import { useFavoritesStore } from '../../../store'
+import { storeToRefs } from 'pinia'
 export default defineComponent({
   props: [],
   setup(props, { emit }) {
@@ -42,14 +49,24 @@ export default defineComponent({
       phoneNumber: '',
       password: '',
       fullName: '',
-      role: ''
+      role: '',
+      favorite: []
     })
     const store = useUsersStore()
+    const favoriteStore = useFavoritesStore()
     const formState = reactive(getInitialValues())
     const resetUserForm = () => Object.assign(formState, getInitialValues())
 
+    const callAPIGetFavorite = async () => {
+      await favoriteStore.getFavorites()
+    }
+
     const handleSubmit = () => {
       emit('handleSubmit', formState)
+    }
+
+    const onChange = (checkedList) => {
+      formState.favorite = checkedList
     }
 
     watchEffect(() => {
@@ -62,6 +79,8 @@ export default defineComponent({
       emit('handleCancel')
       resetUserForm()
     }
+
+    onMounted(callAPIGetFavorite)
     return {
       labelCol: {
         span: 7
@@ -71,7 +90,9 @@ export default defineComponent({
       },
       formState,
       handleSubmit,
-      handleClose
+      handleClose,
+      onChange,
+      ...storeToRefs(favoriteStore)
     }
   }
 })

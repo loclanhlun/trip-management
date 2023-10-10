@@ -148,7 +148,6 @@ export default defineComponent({
       if (store.updateUserByIdState.data.statusCode === 200) {
         message.success('Thành công')
         visibleEditModal.value = false
-        store.getUserInfo(userId.value)
       } else {
         message.error('Thất bại')
       }

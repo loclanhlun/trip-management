@@ -7,6 +7,34 @@
           <a-input type="text" v-model:value="payloadSearch.searchKey" placeholder="Nhập để tìm kiếm" class="custom-input" />
           <button class="btn btn-primary custom-button" type="button" @click="onSubmit">Search</button>
         </div>
+        <h2 v-if="recommentToursState.data.length > 0">Những Tour được gợi ý cho bạn</h2>
+        <div v-if="recommentToursState.data.length > 0">
+          <div v-if="recommentToursState.isLoading" class="d-flex justify-content-center">
+            <a-spin size="large" v-if="recommentToursState.isLoading" />
+          </div>
+          <ul v-else class="list-container row p-0">
+            <li
+              class="col-12 col-sm-6 col-md-4 col-lg-4 gap-1 position-relative"
+              style="cursor: pointer"
+              v-for="(item, index) in recommentToursState.data"
+              :key="index"
+            >
+              <div @click="showTourDetailModal(item.id)" class="d-flex flex-column border my-2 rounded-2 shadow-sm" style="background-color: white">
+                <div class="image-container">
+                  <img :src="item.img" class="image" />
+                </div>
+                <div class="d-flex flex-column p-4 pt-2 hover">
+                  <p class="my-1 title">{{ item.name }}</p>
+                  <p class="my-1 description">{{ item.description }}</p>
+                  <p class="my-1 duration">{{ item.duration }}</p>
+                </div>
+              </div>
+              <div style="z-index: 1" class="position-absolute top-0 end-0 py-3 px-4" @click="addFavorite(item.id)">
+                <i class="bi bi-heart" style="font-size: 20px; color: white"></i>
+              </div>
+            </li>
+          </ul>
+        </div>
         <h2>Danh sách Tour</h2>
         <div v-if="toursState.isLoading" class="d-flex justify-content-center">
           <a-spin size="large" v-if="toursState.isLoading" />
@@ -107,15 +135,17 @@
 </template>
 
 <script>
-import { defineComponent, ref, watch, reactive } from 'vue'
+import { defineComponent, ref, watch, reactive, onMounted } from 'vue'
 import { useToursStore } from '../../admin/tours/stores/store'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../../layouts/auth/store'
+import { useRecommentToursStore } from '../../store'
 export default defineComponent({
   setup() {
     const toursStore = useToursStore()
     const authStore = useAuthStore()
+    const recommentToursStore = useRecommentToursStore()
     const value = ref(2.5)
     const current = ref(1)
     const pageSize = ref(10)
@@ -161,6 +191,10 @@ export default defineComponent({
       await toursStore.getTours(0, 10, payloadSearch)
     }
 
+    const callRecommentTours = async () => {
+      await recommentToursStore.getRecommentTours()
+    }
+
     const handleOk = () => {
       router.push('/login')
     }
@@ -172,8 +206,6 @@ export default defineComponent({
         open.value = true
       }
     }
-
-    getTours()
 
     const onSubmit = () => {
       toursStore.getTours(current.value - 1, pageSize.value, payloadSearch)
@@ -200,6 +232,8 @@ export default defineComponent({
       getTours()
     })
 
+    onMounted(callRecommentTours)
+    onMounted(getTours)
     return {
       value,
       current,
@@ -215,7 +249,8 @@ export default defineComponent({
       onSubmit,
       handleOk,
       addFavorite,
-      ...storeToRefs(toursStore)
+      ...storeToRefs(toursStore),
+      ...storeToRefs(recommentToursStore)
     }
   }
 })

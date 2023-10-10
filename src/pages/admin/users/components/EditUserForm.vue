@@ -16,6 +16,18 @@
       <a-form-item label="Số điện thoại" name="phoneNumber" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
         <a-input :disabled="!isEdit" v-model:value="formState.phoneNumber" />
       </a-form-item>
+      <a-form-item label="Sở thích của bạn là gì?">
+        <a-spin class="mt-2 mx-2" size="small" v-if="favoritesState.isLoading" />
+        <a-checkbox-group
+          :disabled="!isEdit"
+          v-else
+          class="mt-2 mx-2"
+          v-model="formState.favorite"
+          :options="favoritesState.data"
+          :default-value="formState.favorite"
+          @change="onChange"
+        />
+      </a-form-item>
 
       <div class="d-flex justify-content-end">
         <a-form-item>
@@ -36,6 +48,7 @@
 import { defineComponent, ref, reactive, toRaw, onMounted, watch } from 'vue'
 import { useUsersStore } from '../stores/store'
 import { storeToRefs } from 'pinia'
+import { useFavoritesStore } from '../../../store'
 export default defineComponent({
   setup(props, { emit }) {
     const store = useUsersStore()
@@ -44,14 +57,20 @@ export default defineComponent({
       username: '',
       email: '',
       fullName: '',
-      phoneNumber: ''
+      phoneNumber: '',
+      favorite: []
     })
 
     const formState = reactive(getInitialValues())
+    const favoriteStore = useFavoritesStore()
     const isEdit = ref(false)
 
     const onEdit = () => {
       isEdit.value = true
+    }
+
+    const onChange = (checkedList) => {
+      formState.favorite = checkedList
     }
 
     const handleSubmit = () => {
@@ -62,12 +81,9 @@ export default defineComponent({
       delete payload.username
       emit('handleUpdate', payload)
     }
-
-    watch(store, () => {
-      if (!store.updateUserByIdState.isLoading && store.updateUserByIdState.data) {
-        console.log('ASDSAD')
-      }
-    })
+    const callAPIGetFavorite = async () => {
+      await favoriteStore.getFavorites()
+    }
 
     watch(store, () => {
       if (store.userInfoState.data) {
@@ -77,6 +93,7 @@ export default defineComponent({
 
     const handleClose = () => {
       emit('handleCancel')
+      isEdit.value = false
     }
 
     watch(store, () => {
@@ -86,6 +103,8 @@ export default defineComponent({
         }
       }
     })
+
+    onMounted(callAPIGetFavorite)
 
     return {
       labelCol: {
@@ -99,7 +118,9 @@ export default defineComponent({
       onEdit,
       handleSubmit,
       handleClose,
-      ...storeToRefs(store)
+      onChange,
+      ...storeToRefs(store),
+      ...storeToRefs(favoriteStore)
     }
   }
 })

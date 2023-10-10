@@ -1,6 +1,5 @@
 import apiClient from '../../../axiosClient'
 const GET_USERS_URL = '/users/filter'
-const GET_USER_INFOR_URL = '/users/info'
 const UPDATE_DELETE_ADD_USER_BY_ID_URL = '/users'
 
 export const getUsers = (page, size) => {

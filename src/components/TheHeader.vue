@@ -67,6 +67,15 @@
         <a-form-item label="Full Name">
           <a-input disabled v-model:value="userInfoState.data.fullName" />
         </a-form-item>
+        <a-form-item label="Sở thích của bạn là gì?">
+          <a-checkbox-group
+            disabled
+            class="mt-2 mx-2"
+            v-model="userInfoState.data.favorite"
+            :options="favoritesState.data"
+            :default-value="userInfoState.data.favorite"
+          />
+        </a-form-item>
         <div class="d-flex justify-content-end">
           <button @click="handleCancel" class="btn btn-secondary mx-2">Close</button>
         </div>
@@ -75,22 +84,28 @@
   </div>
 </template>
 <script>
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, onMounted } from 'vue'
 import { useMenu } from '../stores/use-menu'
 import { useAuthStore } from '../layouts/auth/store'
 import { useUsersStore } from '../pages/admin/users/stores/store'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
+import { useFavoritesStore } from '../pages/store'
 export default defineComponent({
   setup() {
     const store = useMenu()
     const router = useRouter()
     const authStore = useAuthStore()
     const userStore = useUsersStore()
+    const favoriteStore = useFavoritesStore()
     const visible = ref(false)
     const visibleModel = ref(false)
     const showModel = () => {
       visibleModel.value = true
+    }
+
+    const callAPIGetFavorite = async () => {
+      await favoriteStore.getFavorites()
     }
 
     const handleCancel = () => {
@@ -114,7 +129,8 @@ export default defineComponent({
       await userStore.getUserInfo(authStore.authState.data.id)
     }
 
-    getUserInfo()
+    onMounted(getUserInfo)
+    onMounted(callAPIGetFavorite)
 
     return {
       labelCol: {
@@ -132,7 +148,8 @@ export default defineComponent({
       showModel,
       ...storeToRefs(store),
       ...storeToRefs(authStore),
-      ...storeToRefs(userStore)
+      ...storeToRefs(userStore),
+      ...storeToRefs(favoriteStore)
     }
   }
 })

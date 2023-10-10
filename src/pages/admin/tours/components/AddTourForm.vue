@@ -28,7 +28,10 @@
       <a-form-item label="Giá" name="price" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
         <a-input type="number" v-model:value="formState.price" />
       </a-form-item>
-
+      <a-form-item label="Sở thích của bạn là gì?">
+        <a-spin class="mt-2 mx-2" size="small" v-if="favoritesState.isLoading" />
+        <a-checkbox-group v-else class="mt-2 mx-2" v-model="formState.favorite" :options="favoritesState.data" @change="onChange" />
+      </a-form-item>
       <div class="d-flex justify-content-end">
         <a-form-item>
           <a-button :disabled="addTourState.isLoading" html-type="submit" class="btn btn-primary mx-2">
@@ -44,8 +47,9 @@
 </template>
 
 <script>
-import { defineComponent, ref, reactive, toRaw, watchEffect } from 'vue'
+import { defineComponent, ref, reactive, toRaw, watchEffect, onMounted } from 'vue'
 import { useToursStore } from '../stores/store'
+import { useFavoritesStore } from '../../../store'
 import { storeToRefs } from 'pinia'
 export default defineComponent({
   props: [],
@@ -59,13 +63,15 @@ export default defineComponent({
       place: '',
       description: '',
       price: 0,
-      img: ''
+      img: '',
+      favorite: []
     })
 
     const base64Image = ref(null)
     const file = ref(null)
     const formState = reactive(getInitialValues())
     const store = useToursStore()
+    const favoriteStore = useFavoritesStore()
     const resetForm = () => Object.assign(formState, getInitialValues())
 
     const getBase64 = (file) => {
@@ -74,6 +80,14 @@ export default defineComponent({
         base64Image.value = reader.result
       }
       reader.readAsDataURL(file)
+    }
+
+    const callAPIGetFavorite = async () => {
+      await favoriteStore.getFavorites()
+    }
+
+    const onChange = (checkedList) => {
+      formState.favorite = checkedList
     }
 
     const onFileChanged = (event) => {
@@ -103,6 +117,8 @@ export default defineComponent({
       emit('handleCancel')
       resetForm()
     }
+
+    onMounted(callAPIGetFavorite)
     return {
       labelCol: {
         span: 7
@@ -110,10 +126,12 @@ export default defineComponent({
       wrapperCol: {
         span: 14
       },
-      ...storeToRefs(store),
       formState,
+      ...storeToRefs(favoriteStore),
+      ...storeToRefs(store),
       handleSubmit,
       onFileChanged,
+      onChange,
       handleClose
     }
   }

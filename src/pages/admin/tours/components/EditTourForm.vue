@@ -34,7 +34,18 @@
       <a-form-item label="Giá" name="price" :rules="[{ required: true, message: 'Không thể bỏ trống trường này!' }]">
         <a-input :disabled="!isEdit" type="number" v-model:value="formState.price" />
       </a-form-item>
-
+      <a-form-item label="Sở thích của bạn là gì?">
+        <a-spin class="mt-2 mx-2" size="small" v-if="favoritesState.isLoading" />
+        <a-checkbox-group
+          :disabled="!isEdit"
+          v-else
+          class="mt-2 mx-2"
+          v-model="formState.favorite"
+          :options="favoritesState.data"
+          :default-value="formState.favorite"
+          @change="onChange"
+        />
+      </a-form-item>
       <div class="d-flex justify-content-end">
         <a-form-item>
           <a-button v-if="isEdit" :disabled="updateTourByIdState.isLoading" html-type="submit" class="btn btn-primary mx-2">
@@ -54,10 +65,11 @@
 import { defineComponent, ref, reactive, toRaw, onMounted, watch } from 'vue'
 import { useToursStore } from '../stores/store'
 import { storeToRefs } from 'pinia'
+import { useFavoritesStore } from '../../../store'
 export default defineComponent({
   setup(props, { emit }) {
     const store = useToursStore()
-
+    const favoriteStore = useFavoritesStore()
     const getInitialValues = () => ({
       name: '',
       country: '',
@@ -67,7 +79,8 @@ export default defineComponent({
       place: '',
       description: '',
       price: 0,
-      img: ''
+      img: '',
+      favorite: []
     })
 
     const base64Image = ref(null)
@@ -94,6 +107,14 @@ export default defineComponent({
         file.value = target.files[0]
         getBase64(file.value)
       }
+    }
+
+    const callAPIGetFavorite = async () => {
+      await favoriteStore.getFavorites()
+    }
+
+    const onChange = (checkedList) => {
+      formState.favorite = checkedList
     }
 
     const handleSubmit = () => {
@@ -128,7 +149,7 @@ export default defineComponent({
         }
       }
     })
-
+    onMounted(callAPIGetFavorite)
     return {
       labelCol: {
         span: 7
@@ -142,7 +163,9 @@ export default defineComponent({
       handleSubmit,
       onFileChanged,
       handleClose,
-      ...storeToRefs(store)
+      onChange,
+      ...storeToRefs(store),
+      ...storeToRefs(favoriteStore)
     }
   }
 })
